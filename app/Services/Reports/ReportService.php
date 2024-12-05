@@ -3,7 +3,7 @@
 namespace App\Services\Reports;
 
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use App\Http\Requests\GenerateReportRequest;
 use App\Services\Reports\Generators\PdfGenerator;
 use App\Services\Reports\Generators\CsvGenerator;
 
@@ -14,7 +14,7 @@ abstract class ReportService
     protected $departmentId;
     protected $employeeId;
 
-    public function __construct(Request $request)
+    public function __construct(GenerateReportRequest $request)
     {
         $this->startDate = Carbon::parse($request->start_date)->startOfDay();
         $this->endDate = Carbon::parse($request->end_date)->endOfDay();
@@ -90,13 +90,23 @@ abstract class ReportService
             foreach ($data['patterns'] as $pattern) {
                 $rows[] = [
                     $pattern['employee_name'],
+                    $pattern['employee_number'],
                     $pattern['department'],
                     $pattern['total_absences'],
+                    $pattern['total_days'],
+                    $pattern['absence_rate'],
                     $pattern['most_common_day'],
                     $pattern['day_frequency'],
                     $pattern['max_consecutive'],
                     $pattern['consecutive_occurrences'],
-                    $pattern['weekly_frequency']
+                    $pattern['weekly_frequency'],
+                    $pattern['most_common_type'],
+                    $pattern['most_common_reason'],
+                    $pattern['reason_frequency'],
+                    $pattern['first_absence_date'],
+                    $pattern['last_absence_date'],
+                    $pattern['monday_rate'],
+                    $pattern['friday_rate']
                 ];
             }
         }
