@@ -16,7 +16,8 @@ class AbsenceRecord extends Model
         'date',
         'type',
         'reason',
-        'notes'
+        'notes',
+        'parent_absence_id'
     ];
 
     protected $casts = [
@@ -31,5 +32,25 @@ class AbsenceRecord extends Model
     public function recordedBy()
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function parentAbsence()
+    {
+        return $this->belongsTo(AbsenceRecord::class, 'parent_absence_id');
+    }
+
+    public function extensions()
+    {
+        return $this->hasMany(AbsenceRecord::class, 'parent_absence_id');
+    }
+
+    public function isExtension(): bool
+    {
+        return !is_null($this->parent_absence_id);
+    }
+
+    public function hasExtensions(): bool
+    {
+        return $this->extensions()->exists();
     }
 }

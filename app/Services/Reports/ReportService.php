@@ -30,9 +30,94 @@ abstract class ReportService
     {
         $data = $this->getData();
 
-        return $format === 'pdf'
-            ? (new PdfGenerator())->generate($this->getViewName(), $data, $this->getFileName())
-            : (new CsvGenerator())->generate($data, $this->getHeaders(), $this->getFileName());
+        if ($format === 'pdf') {
+            return (new PdfGenerator())->generate($this->getViewName(), $data, $this->getFileName());
+        }
+
+        // For CSV, transform the data into rows based on report type
+        $rows = [];
+
+        // Basic Clocking Report and Timesheet Report
+        if (isset($data['timeLogs'])) {
+            foreach ($data['timeLogs'] as $log) {
+                $rows[] = [
+                    $log['employee_name'] ?? ($data['employee']['name'] ?? ''),
+                    $log['department'] ?? ($data['employee']['department'] ?? ''),
+                    $log['date'],
+                    $log['clock_in'],
+                    $log['clock_out'],
+                    $log['duration'],
+                    $log['status'],
+                    $log['is_late'] ? 'Yes' : 'No',
+                    $log['left_early'] ? 'Yes' : 'No',
+                    $log['notes'] ?? ''
+                ];
+            }
+        }
+        // Department Overview Report
+        elseif (isset($data['departments'])) {
+            foreach ($data['departments'] as $dept) {
+                $rows[] = [
+                    $dept['department'],
+                    $dept['total_employees'],
+                    $dept['attendance_rate'] . '%',
+                    $dept['late_rate'] . '%',
+                    $dept['early_departure_rate'] . '%',
+                    $dept['average_hours']
+                ];
+            }
+        }
+        // Holiday Summary Report
+        elseif (isset($data['records'])) {
+            foreach ($data['records'] as $record) {
+                $monthlyPattern = implode(', ', array_map(function ($month, $count) {
+                    return "$month: $count";
+                }, array_keys($record['leave_pattern']), $record['leave_pattern']));
+
+                $rows[] = [
+                    $record['employee_name'],
+                    $record['department'],
+                    $record['total_entitlement'],
+                    $record['days_taken'],
+                    $record['days_remaining'],
+                    $record['pending_requests'],
+                    $monthlyPattern
+                ];
+            }
+        }
+        // Absence Patterns Report
+        elseif (isset($data['patterns'])) {
+            foreach ($data['patterns'] as $pattern) {
+                $rows[] = [
+                    $pattern['employee_name'],
+                    $pattern['department'],
+                    $pattern['total_absences'],
+                    $pattern['most_common_day'],
+                    $pattern['day_frequency'],
+                    $pattern['max_consecutive'],
+                    $pattern['consecutive_occurrences'],
+                    $pattern['weekly_frequency']
+                ];
+            }
+        }
+        // Extended Absences Report
+        elseif (isset($data['absences'])) {
+            foreach ($data['absences'] as $absence) {
+                foreach ($absence['absence_periods'] as $period) {
+                    $rows[] = [
+                        $absence['employee_name'],
+                        $absence['employee_number'],
+                        $absence['department'],
+                        $period['start_date'],
+                        $period['end_date'],
+                        $period['duration'],
+                        $period['reason']
+                    ];
+                }
+            }
+        }
+
+        return (new CsvGenerator())->generate($rows, $this->getHeaders(), $this->getFileName());
     }
 
     protected function getDateRange(): string

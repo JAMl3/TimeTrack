@@ -44,16 +44,16 @@ Route::get('/employees/suggest', function (Request $request) {
                     $query->where('name', 'like', "%{$term}%");
                 });
         })
-        ->with('user')
-        ->take(5)
-        ->get()
-        ->map(function ($employee) {
-            return [
-                'id' => $employee->id,
-                'employee_number' => $employee->employee_number,
-                'name' => $employee->user->name,
-            ];
-        });
+            ->with('user')
+            ->take(5)
+            ->get()
+            ->map(function ($employee) {
+                return [
+                    'id' => $employee->id,
+                    'employee_number' => $employee->employee_number,
+                    'name' => $employee->user->name,
+                ];
+            });
 
         Log::info('Employee search results', ['count' => $employees->count()]);
         return response()->json(['employees' => $employees]);
@@ -117,7 +117,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Absence Routes
     Route::middleware('can:view absences')->group(function () {
-        Route::resource('absences', AbsenceRecordController::class);
+        Route::resource('absences', AbsenceRecordController::class)->except(['edit', 'update']);
         Route::get('absences/patterns/{user}', [AbsenceRecordController::class, 'patterns'])
             ->name('absences.patterns');
         Route::post('absences/{user}/extend', [AbsenceRecordController::class, 'extend'])

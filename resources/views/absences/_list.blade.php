@@ -50,6 +50,18 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                             {{ ucfirst($absence->type) }}
+                            @if ($absence->isExtension())
+                                <span
+                                    class="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Extended
+                                </span>
+                            @endif
+                            @if ($absence->hasExtensions())
+                                <span
+                                    class="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Has Extensions
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                             {{ Str::limit($absence->reason, 50) }}
@@ -58,9 +70,11 @@
                             {{ $absence->recordedBy->name }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            @can('update', $absence)
-                                <a href="{{ route('absences.edit', $absence) }}"
-                                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-600">Edit</a>
+                            @can('viewPatterns', $absence->user)
+                                <a href="{{ route('absences.patterns', $absence->user) }}"
+                                    class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-600">
+                                    View Patterns
+                                </a>
                             @endcan
                         </td>
                     </tr>

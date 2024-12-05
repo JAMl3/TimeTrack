@@ -62,16 +62,6 @@ class AbsenceRecordController extends Controller
     {
         $user = Auth::user();
 
-        // Temporarily disable permission check
-        /*
-        if (!$user->can('view all absences')) {
-            $employee = User::findOrFail($request->user_id);
-            if ($employee->employee->supervisor_id !== $user->id) {
-                abort(403);
-            }
-        }
-        */
-
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'date' => 'required|date',
@@ -99,11 +89,23 @@ class AbsenceRecordController extends Controller
     {
         $this->authorize('viewPatterns', [$user]);
 
-        $absencePatterns = AbsenceRecord::where('user_id', $user->id)
+        $absences = AbsenceRecord::where('user_id', $user->id)
+            ->with(['parentAbsence', 'extensions'])
             ->orderBy('date', 'desc')
             ->get();
 
-        return view('absences.patterns', compact('user', 'absencePatterns'));
+        $holidays = \App\Models\HolidayRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->get();
+
+        $patternDetector = new \App\Services\AbsencePatternDetector($absences, $holidays);
+        $analysisResults = $patternDetector->analyze();
+
+        return view('absences.patterns', [
+            'employee' => $user,
+            'patterns' => $analysisResults['patterns'],
+            'recommendations' => $analysisResults['recommendations']
+        ]);
     }
 
     public function extend(Request $request, User $user)
