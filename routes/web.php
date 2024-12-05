@@ -30,14 +30,20 @@ if (app()->environment('local')) {
 // Employee suggestion endpoint - Public access
 Route::get('/employees/suggest', function (Request $request) {
     $term = $request->query('term');
+    Log::info('Employee search request', ['term' => $term]);
 
     if (!$term || strlen($term) < 2) {
+        Log::info('Search term too short');
         return response()->json(['employees' => []]);
     }
 
-    $employees = Employee::whereHas('user', function ($query) use ($term) {
-        $query->where('name', 'like', "%{$term}%");
-    })
+    try {
+        $employees = Employee::where(function ($query) use ($term) {
+            $query->where('employee_number', 'like', "%{$term}%")
+                ->orWhereHas('user', function ($query) use ($term) {
+                    $query->where('name', 'like', "%{$term}%");
+                });
+        })
         ->with('user')
         ->take(5)
         ->get()
@@ -49,8 +55,13 @@ Route::get('/employees/suggest', function (Request $request) {
             ];
         });
 
-    return response()->json(['employees' => $employees]);
-});
+        Log::info('Employee search results', ['count' => $employees->count()]);
+        return response()->json(['employees' => $employees]);
+    } catch (\Exception $e) {
+        Log::error('Employee search error', ['error' => $e->getMessage()]);
+        return response()->json(['error' => 'An error occurred while searching'], 500);
+    }
+})->name('employees.suggest');
 
 Route::middleware(['auth'])->group(function () {
     // Dashboard Route

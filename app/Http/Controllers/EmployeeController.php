@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\Department;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class EmployeeController extends Controller
 {
@@ -28,12 +30,52 @@ class EmployeeController extends Controller
     public function create()
     {
         $departments = Department::all();
-        return view('employees.create', compact('departments'));
+        $managers = User::whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'hr', 'manager']);
+            })
+            ->get();
+        return view('employees.create', compact('departments', 'managers'));
     }
 
     public function store(Request $request)
     {
-        // Add validation and store logic
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'department_id' => 'required|exists:departments,id',
+            'position' => 'required|string|max:255',
+            'manager_id' => 'nullable|exists:users,id',
+            'start_date' => 'required|date',
+            'employee_number' => 'required|string|unique:employees',
+            'pin_code' => 'required|string|min:4|max:8',
+        ]);
+
+        // Create user
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt('password'), // Set a default password
+        ]);
+
+        // Assign employee role
+        $employeeRole = Role::where('name', 'employee')->first();
+        $user->roles()->attach($employeeRole);
+
+        // Create employee
+        $employee = Employee::create([
+            'user_id' => $user->id,
+            'employee_number' => $validated['employee_number'],
+            'department_id' => $validated['department_id'],
+            'position' => $validated['position'],
+            'manager_id' => $validated['manager_id'],
+            'start_date' => $validated['start_date'],
+            'pin_code' => $validated['pin_code'],
+            'pin_changed' => false,
+            'status' => 'active',
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Employee created successfully. Default password is "password"');
     }
 
     public function show(Employee $employee)

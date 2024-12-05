@@ -28,17 +28,22 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Create roles
         $adminRole = Role::create(['name' => 'admin']);
+        $hrRole = Role::create(['name' => 'hr']);
         $managerRole = Role::create(['name' => 'manager']);
         $employeeRole = Role::create(['name' => 'employee']);
 
         // Assign permissions to roles
         $adminRole->permissions()->attach(Permission::all());
 
+        // HR role gets all permissions except some admin-specific ones
+        $hrRole->permissions()->attach(Permission::all());
+
         $managerRole->permissions()->attach(Permission::whereIn('name', [
             'view reports',
             'view holidays',
             'approve holidays',
             'view absences',
+            'manage employees'
         ])->get());
 
         $employeeRole->permissions()->attach(Permission::whereIn('name', [

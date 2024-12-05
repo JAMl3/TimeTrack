@@ -16,8 +16,7 @@ class Employee extends Model
         'employee_number',
         'department_id',
         'position',
-        'role',
-        'supervisor_id',
+        'manager_id',
         'start_date',
         'pin_code',
         'pin_changed',
@@ -60,24 +59,19 @@ class Employee extends Model
         return $this->timeLogs()->latest()->first();
     }
 
-    public function supervisor()
+    public function manager()
     {
-        return $this->belongsTo(User::class, 'supervisor_id');
+        return $this->belongsTo(User::class, 'manager_id');
     }
 
-    public function subordinates()
+    public function managedEmployees()
     {
-        return $this->hasMany(Employee::class, 'supervisor_id', 'user_id');
+        return $this->hasMany(Employee::class, 'manager_id', 'user_id');
     }
 
-    public function isHR()
+    public function isManager()
     {
-        return $this->role === 'hr';
-    }
-
-    public function isSupervisor()
-    {
-        return $this->subordinates()->exists();
+        return $this->managedEmployees()->exists();
     }
 
     /**

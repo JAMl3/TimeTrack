@@ -87,14 +87,14 @@ use App\Models\Department;
 
                             <div>
                                 <label for="supervisor_id"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Supervisor</label>
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Manager</label>
                                 <select name="supervisor_id" id="supervisor_id"
                                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                    <option value="">Select Supervisor</option>
-                                    @foreach ($supervisors as $supervisor)
-                                        <option value="{{ $supervisor->id }}"
-                                            {{ old('supervisor_id') == $supervisor->id ? 'selected' : '' }}>
-                                            {{ $supervisor->name }}
+                                    <option value="">Select Manager</option>
+                                    @foreach ($managers as $manager)
+                                        <option value="{{ $manager->id }}"
+                                            {{ old('supervisor_id') == $manager->id ? 'selected' : '' }}>
+                                            {{ $manager->name }}
                                         </option>
                                     @endforeach
                                 </select>

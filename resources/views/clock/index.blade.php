@@ -1,19 +1,19 @@
 <x-clock-layout>
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                 <div class="p-6">
                     <!-- Company Logo/Name -->
                     <div class="text-center mb-6">
-                        <h1 class="text-2xl font-bold text-gray-900">{{ config('app.name', 'Laravel') }}</h1>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ config('app.name', 'Laravel') }}</h1>
                     </div>
 
                     <!-- Current Time Display -->
                     <div class="text-center mb-8">
-                        <div class="text-6xl font-bold text-gray-700 mb-2" id="current-time">
+                        <div class="text-6xl font-bold text-gray-700 dark:text-gray-200 mb-2" id="current-time">
                             00:00:00
                         </div>
-                        <div class="text-xl text-gray-500" id="current-date">
+                        <div class="text-xl text-gray-500 dark:text-gray-400" id="current-date">
                             Loading...
                         </div>
                     </div>
@@ -21,14 +21,14 @@
                     <!-- Success/Error Messages -->
                     <div class="max-w-md mx-auto">
                         @if (session('success'))
-                            <div class="mb-6 {{ str_contains(session('success'), 'out') ? 'bg-red-100 border-red-400 text-red-700' : 'bg-green-100 border-green-400 text-green-700' }} border px-4 py-3 rounded relative text-center text-lg font-medium"
+                            <div class="mb-6 {{ str_contains(session('success'), 'out') ? 'bg-red-100 dark:bg-red-900/50 border-red-400 text-red-700 dark:text-red-200' : 'bg-green-100 dark:bg-green-900/50 border-green-400 text-green-700 dark:text-green-200' }} border px-4 py-3 rounded relative text-center text-lg font-medium"
                                 role="alert" id="success-message">
                                 <span class="block">{{ session('success') }}</span>
                             </div>
                         @endif
 
                         @if ($errors->any())
-                            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-center"
+                            <div class="mb-6 bg-red-100 dark:bg-red-900/50 border border-red-400 text-red-700 dark:text-red-200 px-4 py-3 rounded relative text-center"
                                 role="alert">
                                 @foreach ($errors->all() as $error)
                                     <span class="block">{{ $error }}</span>
@@ -46,22 +46,30 @@
                         <input type="hidden" id="employee_number" name="employee_number" />
 
                         <div class="relative">
-                            <x-input-label for="employee_search" :value="__('Search by Name or Employee Number')" />
+                            <x-input-label for="employee_search" :value="__('Search by Name or Employee Number')" class="text-gray-700 dark:text-gray-300" />
                             <x-text-input id="employee_search"
-                                class="block mt-1 w-full text-xl bg-white dark:bg-white text-gray-900" type="text"
-                                placeholder="Type name or employee number..." autocomplete="off" required autofocus />
+                                class="block mt-1 w-full text-xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                                type="text"
+                                placeholder="Type name or employee number..."
+                                autocomplete="off"
+                                required
+                                autofocus />
                             <!-- Suggestions Dropdown -->
                             <div id="suggestions_dropdown"
-                                class="absolute w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 hidden">
+                                class="absolute w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10 hidden">
                             </div>
                         </div>
 
                         <div>
-                            <x-input-label for="pin_code" :value="__('PIN Code')" />
+                            <x-input-label for="pin_code" :value="__('PIN Code')" class="text-gray-700 dark:text-gray-300" />
                             <x-text-input id="pin_code"
-                                class="block mt-1 w-full text-center text-xl bg-white dark:bg-white text-gray-900"
-                                type="password" name="pin_code" required autocomplete="new-password"
-                                data-lpignore="true" data-form-type="other" />
+                                class="block mt-1 w-full text-center text-xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                                type="password"
+                                name="pin_code"
+                                required
+                                autocomplete="new-password"
+                                data-lpignore="true"
+                                data-form-type="other" />
                         </div>
 
                         <div class="flex justify-center">
@@ -77,6 +85,41 @@
 
     @push('scripts')
         <script>
+            // Add styles for suggestion items
+            const style = document.createElement('style');
+            style.textContent = `
+                .suggestion-item {
+                    padding: 0.75rem 1rem;
+                    cursor: pointer;
+                }
+                .suggestion-item:hover {
+                    background-color: #f3f4f6;
+                }
+                .dark .suggestion-item:hover {
+                    background-color: #374151;
+                }
+                .suggestion-item .name {
+                    color: #111827;
+                }
+                .dark .suggestion-item .name {
+                    color: #f3f4f6;
+                }
+                .suggestion-item .employee-number {
+                    color: #6b7280;
+                    font-size: 0.875rem;
+                }
+                .dark .suggestion-item .employee-number {
+                    color: #9ca3af;
+                }
+                .suggestion-item.bg-gray-100 {
+                    background-color: #f3f4f6;
+                }
+                .dark .suggestion-item.bg-gray-100 {
+                    background-color: #374151;
+                }
+            `;
+            document.head.appendChild(style);
+
             // Add CSRF token to all AJAX requests
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
             fetch = (originalFetch => {
@@ -196,52 +239,59 @@
 
                 // Set a new timer
                 debounceTimer = setTimeout(() => {
-                    const url = `/employees/suggest?term=${encodeURIComponent(value)}`;
+                    const url = "{{ route('employees.suggest') }}?term=" + encodeURIComponent(value);
 
-                    fetch(url)
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(err => {
-                                    throw new Error(err.error || 'Server error');
-                                });
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            suggestionsDropdown.innerHTML = '';
+                    fetch(url, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        suggestionsDropdown.innerHTML = '';
 
-                            if (data.employees && data.employees.length > 0) {
-                                data.employees.forEach(employee => {
-                                    const div = document.createElement('div');
-                                    div.className = 'suggestion-item';
-                                    div.innerHTML = `
-                                        <div class="name">${employee.name}</div>
-                                        <div class="employee-number">#${employee.employee_number}</div>
-                                    `;
-                                    div.addEventListener('click', () => {
-                                        searchInput.value = employee.name;
-                                        employeeNumberInput.value = employee
-                                            .employee_number;
-                                        suggestionsDropdown.classList.add('hidden');
-                                        document.getElementById('pin_code').focus();
-                                    });
-                                    suggestionsDropdown.appendChild(div);
+                        if (data.employees && data.employees.length > 0) {
+                            data.employees.forEach(employee => {
+                                const div = document.createElement('div');
+                                div.className = 'suggestion-item';
+                                div.innerHTML = `
+                                    <div class="name">${employee.name}</div>
+                                    <div class="employee-number">#${employee.employee_number}</div>
+                                `;
+                                div.addEventListener('click', () => {
+                                    searchInput.value = employee.name;
+                                    employeeNumberInput.value = employee.employee_number;
+                                    suggestionsDropdown.classList.add('hidden');
+                                    document.getElementById('pin_code').focus();
                                 });
-                                suggestionsDropdown.classList.remove('hidden');
-                            } else {
-                                suggestionsDropdown.classList.add('hidden');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
+                                suggestionsDropdown.appendChild(div);
+                            });
+                            suggestionsDropdown.classList.remove('hidden');
+                        } else {
                             suggestionsDropdown.innerHTML = `
-                                <div class="p-4 text-red-600">
-                                    ${error.message || 'Error fetching suggestions'}
+                                <div class="p-4 text-gray-500 dark:text-gray-400">
+                                    No matches found
                                 </div>
                             `;
                             suggestionsDropdown.classList.remove('hidden');
-                        });
-                }, 300); // Wait 300ms after last keystroke before fetching
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        suggestionsDropdown.innerHTML = `
+                            <div class="p-4 text-red-600 dark:text-red-400">
+                                Unable to fetch suggestions. Please try again.
+                            </div>
+                        `;
+                        suggestionsDropdown.classList.remove('hidden');
+                    });
+                }, 300);
             });
 
             // Hide dropdown when clicking outside
